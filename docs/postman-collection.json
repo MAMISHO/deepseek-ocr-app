@@ -1,0 +1,461 @@
+{
+  "info": {
+    "_postman_id": "deepseek-ocr-api",
+    "name": "DeepSeek OCR API",
+    "description": "API collection for DeepSeek OCR Application - OCR processing using DeepSeek model through Ollama",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000/api",
+      "type": "string"
+    },
+    {
+      "key": "fileId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "jobId",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Health",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/health",
+              "host": ["{{baseUrl}}"],
+              "path": ["health"]
+            },
+            "description": "Check the health status of the API and Ollama service"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Config",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/config",
+              "host": ["{{baseUrl}}"],
+              "path": ["config"]
+            },
+            "description": "Get public configuration settings"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "OCR",
+      "item": [
+        {
+          "name": "Upload File",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201 || pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    if (response.data && response.data.id) {",
+                  "        pm.collectionVariables.set('fileId', response.data.id);",
+                  "        console.log('File ID saved:', response.data.id);",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": ""
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/ocr/upload",
+              "host": ["{{baseUrl}}"],
+              "path": ["ocr", "upload"]
+            },
+            "description": "Upload a file (PDF, PNG, or JPG) for OCR processing"
+          },
+          "response": []
+        },
+        {
+          "name": "Process File by ID",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    if (response.data && response.data.id) {",
+                  "        pm.collectionVariables.set('jobId', response.data.id);",
+                  "        console.log('Job ID saved:', response.data.id);",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"fileId\": \"{{fileId}}\",\n    \"prompt\": \"<image>\\nExtract the text in the image.\",\n    \"options\": {\n        \"language\": \"auto\",\n        \"outputFormat\": \"text\"\n    }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/ocr/process",
+              "host": ["{{baseUrl}}"],
+              "path": ["ocr", "process"]
+            },
+            "description": "Process an uploaded file by its ID"
+          },
+          "response": []
+        },
+        {
+          "name": "Process from URL",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    if (response.data && response.data.id) {",
+                  "        pm.collectionVariables.set('jobId', response.data.id);",
+                  "        console.log('Job ID saved:', response.data.id);",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"url\": \"https://example.com/document.png\",\n    \"prompt\": \"<image>\\nExtract the text in the image.\",\n    \"options\": {\n        \"language\": \"auto\",\n        \"outputFormat\": \"text\"\n    }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/ocr/process-url",
+              "host": ["{{baseUrl}}"],
+              "path": ["ocr", "process-url"]
+            },
+            "description": "Process a file directly from a URL"
+          },
+          "response": []
+        },
+        {
+          "name": "Process from Base64",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    if (response.data && response.data.id) {",
+                  "        pm.collectionVariables.set('jobId', response.data.id);",
+                  "        console.log('Job ID saved:', response.data.id);",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"data\": \"iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==\",\n    \"filename\": \"test.png\",\n    \"mimeType\": \"image/png\",\n    \"prompt\": \"<image>\\nExtract the text in the image.\",\n    \"options\": {\n        \"language\": \"auto\",\n        \"outputFormat\": \"text\"\n    }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/ocr/process-base64",
+              "host": ["{{baseUrl}}"],
+              "path": ["ocr", "process-base64"]
+            },
+            "description": "Process a file from base64 encoded data"
+          },
+          "response": []
+        },
+        {
+          "name": "Process from Server Path",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    if (response.data && response.data.id) {",
+                  "        pm.collectionVariables.set('jobId', response.data.id);",
+                  "        console.log('Job ID saved:', response.data.id);",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"path\": \"/path/to/file.png\",\n    \"prompt\": \"<image>\\nExtract the text in the image.\",\n    \"options\": {\n        \"language\": \"auto\",\n        \"outputFormat\": \"text\"\n    }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/ocr/process-path",
+              "host": ["{{baseUrl}}"],
+              "path": ["ocr", "process-path"]
+            },
+            "description": "Process a file from a server-side path"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Job Status",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/ocr/status/{{jobId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["ocr", "status", "{{jobId}}"]
+            },
+            "description": "Get the status of an OCR processing job"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Job Result",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/ocr/result/{{jobId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["ocr", "result", "{{jobId}}"]
+            },
+            "description": "Get the result of a completed OCR processing job"
+          },
+          "response": []
+        },
+        {
+          "name": "Delete File",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/ocr/file/{{fileId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["ocr", "file", "{{fileId}}"]
+            },
+            "description": "Delete an uploaded file"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Workflows",
+      "item": [
+        {
+          "name": "Complete OCR Workflow",
+          "item": [
+            {
+              "name": "1. Upload File",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('File uploaded successfully', function () {",
+                      "    pm.response.to.have.status(201);",
+                      "});",
+                      "",
+                      "if (pm.response.code === 201) {",
+                      "    const response = pm.response.json();",
+                      "    pm.collectionVariables.set('fileId', response.data.id);",
+                      "}"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "formdata",
+                  "formdata": [
+                    {
+                      "key": "file",
+                      "type": "file",
+                      "src": ""
+                    }
+                  ]
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/ocr/upload",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["ocr", "upload"]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "2. Start Processing",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Processing started', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "if (pm.response.code === 200) {",
+                      "    const response = pm.response.json();",
+                      "    pm.collectionVariables.set('jobId', response.data.id);",
+                      "}"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"fileId\": \"{{fileId}}\",\n    \"prompt\": \"<image>\\n<|grounding|>Convert the document to text, preserving the structure and formatting as much as possible.\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/ocr/process",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["ocr", "process"]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "3. Poll for Result",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Job status retrieved', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "const response = pm.response.json();",
+                      "if (response.data.status === 'completed') {",
+                      "    console.log('OCR completed!');",
+                      "    console.log('Result:', response.data.result.text);",
+                      "} else if (response.data.status === 'processing') {",
+                      "    console.log('Still processing... Progress:', response.data.progress);",
+                      "} else if (response.data.status === 'failed') {",
+                      "    console.log('Processing failed:', response.data.error);",
+                      "}"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/ocr/status/{{jobId}}",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["ocr", "status", "{{jobId}}"]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "4. Get Full Result",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/ocr/result/{{jobId}}",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["ocr", "result", "{{jobId}}"]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "5. Cleanup - Delete File",
+              "request": {
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/ocr/file/{{fileId}}",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["ocr", "file", "{{fileId}}"]
+                }
+              },
+              "response": []
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

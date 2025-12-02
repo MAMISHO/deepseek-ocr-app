@@ -1,0 +1,94 @@
+version: '3.8'
+
+services:
+  # Ollama Service (AI/OCR Engine)
+  ollama:
+    image: ollama/ollama:latest
+    container_name: deepseek-ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    restart: unless-stopped
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:11434/api/tags"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  # Backend Service (NestJS API)
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: deepseek-backend
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - APP_PORT=3000
+      - APP_HOST=0.0.0.0
+      - APP_CORS_ORIGINS=http://localhost,http://localhost:4200,http://localhost:80
+      - OLLAMA_HOST=http://ollama:11434
+      - OLLAMA_MODEL=deepseek-ocr
+      - OLLAMA_TIMEOUT=300000
+      - OLLAMA_MAX_RETRIES=3
+      - OLLAMA_RETRY_DELAY=1000
+      - OCR_DEFAULT_LANGUAGE=auto
+      - OCR_DEFAULT_OUTPUT_FORMAT=text
+      - OCR_MAX_PAGES=100
+      - OCR_DEFAULT_PROMPT=<image>\nExtract the text in the image.
+      - STORAGE_TYPE=local
+      - STORAGE_LOCAL_PATH=/app/uploads
+      - STORAGE_MAX_FILE_SIZE=52428800
+      - STORAGE_ALLOWED_MIMETYPES=application/pdf,image/png,image/jpeg
+      - LOG_LEVEL=info
+      - RATE_LIMIT_ENABLED=true
+      - RATE_LIMIT_TTL=60
+      - RATE_LIMIT_MAX=100
+    volumes:
+      - uploads_data:/app/uploads
+    depends_on:
+      ollama:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Frontend Service (Angular + Nginx)
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: deepseek-frontend
+    ports:
+      - "80:80"
+    depends_on:
+      backend:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:80"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+volumes:
+  ollama_data:
+    driver: local
+  uploads_data:
+    driver: local
+
+networks:
+  default:
+    name: deepseek-network

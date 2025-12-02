@@ -1,0 +1,76 @@
+# Docker Compose for development (without GPU)
+version: '3.8'
+
+services:
+  # Ollama Service (AI/OCR Engine) - CPU version
+  ollama:
+    image: ollama/ollama:latest
+    container_name: deepseek-ollama-dev
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:11434/api/tags"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  # Backend Service (NestJS API)
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: deepseek-backend-dev
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=development
+      - APP_PORT=3000
+      - APP_HOST=0.0.0.0
+      - APP_CORS_ORIGINS=http://localhost,http://localhost:4200,http://localhost:80
+      - OLLAMA_HOST=http://ollama:11434
+      - OLLAMA_MODEL=deepseek-ocr
+      - OLLAMA_TIMEOUT=300000
+      - OLLAMA_MAX_RETRIES=3
+      - OLLAMA_RETRY_DELAY=1000
+      - OCR_DEFAULT_LANGUAGE=auto
+      - OCR_DEFAULT_OUTPUT_FORMAT=text
+      - OCR_MAX_PAGES=100
+      - OCR_DEFAULT_PROMPT=<image>\nExtract the text in the image.
+      - STORAGE_TYPE=local
+      - STORAGE_LOCAL_PATH=/app/uploads
+      - STORAGE_MAX_FILE_SIZE=52428800
+      - STORAGE_ALLOWED_MIMETYPES=application/pdf,image/png,image/jpeg
+      - LOG_LEVEL=debug
+      - RATE_LIMIT_ENABLED=false
+    volumes:
+      - uploads_data:/app/uploads
+      - ./backend/src:/app/src:ro
+    depends_on:
+      ollama:
+        condition: service_healthy
+    restart: unless-stopped
+
+  # Frontend Service (Angular + Nginx)
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: deepseek-frontend-dev
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+volumes:
+  ollama_data:
+    driver: local
+  uploads_data:
+    driver: local
+
+networks:
+  default:
+    name: deepseek-network-dev
