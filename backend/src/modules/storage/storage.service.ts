@@ -1,9 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { createCanvas } from 'canvas';
 import * as fs from 'fs/promises';
 import * as path from 'path';
-import * as pdfjsLib from 'pdfjs-dist/legacy/build/pdf.mjs';
 import * as sharp from 'sharp';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -71,43 +69,18 @@ export class StorageService {
     try {
       this.logger.log(`Converting PDF to images: ${pdfPath}`);
       
-      // Read PDF file
-      const pdfBuffer = await fs.readFile(pdfPath);
-      const pdfData = new Uint8Array(pdfBuffer);
+      // Dynamic import for ESM module pdf-to-img
+      const { pdf } = await import('pdf-to-img');
       
-      // Load PDF document
-      const pdfDocument = await pdfjsLib.getDocument({
-        data: pdfData,
-        useSystemFonts: true,
-      }).promise;
+      // Convert PDF pages to images
+      const document = await pdf(pdfPath, { scale: 2.0 });
       
-      this.logger.log(`PDF loaded successfully. Total pages: ${pdfDocument.numPages}`);
-      
-      // Process each page
-      for (let pageNum = 1; pageNum <= pdfDocument.numPages; pageNum++) {
-        const page = await pdfDocument.getPage(pageNum);
-        
-        // Set scale for good quality (2x for better OCR results)
-        const scale = 2.0;
-        const viewport = page.getViewport({ scale });
-        
-        // Create canvas
-        const canvas = createCanvas(viewport.width, viewport.height);
-        const context = canvas.getContext('2d');
-        
-        // Render page to canvas
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        await page.render({
-          canvasContext: context as any,
-          viewport: viewport,
-        } as any).promise;
-        
-        // Convert canvas to PNG buffer
-        const pngBuffer = canvas.toBuffer('image/png');
-        
-        // Convert to base64
-        images.push(pngBuffer.toString('base64'));
-        
+      let pageNum = 0;
+      for await (const image of document) {
+        pageNum++;
+        // image is a Buffer containing PNG data
+        const base64 = Buffer.from(image).toString('base64');
+        images.push(base64);
         this.logger.debug(`Page ${pageNum} converted successfully`);
       }
       

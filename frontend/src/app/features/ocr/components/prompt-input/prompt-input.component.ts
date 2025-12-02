@@ -88,14 +88,18 @@ export class PromptInputComponent {
   @Output() promptChange = new EventEmitter<string>();
 
   promptValue = '';
-  placeholder = '<image>\n<|grounding|>Convert the document to text, preserving the structure and formatting as much as possible.';
+  placeholder = 'Extract all text from this image.';
 
   templates = [
-    { label: 'Extract Text', value: '<image>\nExtract the text in the image.' },
-    { label: 'To Markdown', value: '<image>\n<|grounding|>Convert the document to markdown.' },
-    { label: 'Parse Figure', value: '<image>\nParse the figure.' },
-    { label: 'Free OCR', value: '<image>\nFree OCR.' },
-    { label: 'Layout Analysis', value: '<image>\n<|grounding|>Given the layout of the image.' },
+    // Prompts probados y efectivos
+    { label: 'Extract Text', value: 'Extract all text from this image.' },
+    { label: 'Perform OCR', value: 'Perform OCR and output the text.' },
+    { label: 'To Markdown', value: 'Convert the entire document to clean markdown, using appropriate headings and lists. Exclude any non-textual elements or coordinates.' },
+    { label: 'Handwritten', value: 'Transcribe the handwritten text exactly as it appears.' },
+    { label: 'Numbers & Dates', value: 'Extract all text, with a focus on numerical data and dates.' },
+    { label: 'Names & Emails', value: 'Find and list all names and email addresses in the document.' },
+    { label: 'Extract Table', value: 'Extract the table data and format it as a markdown table.' },
+    { label: 'Receipt/Invoice', value: 'Extract all text from this receipt, including item names, quantities, prices, and total.' },
   ];
 
   onPromptChange(value: string): void {

@@ -43,11 +43,12 @@ A complete web application for OCR (Optical Character Recognition) processing us
 - ✅ **Validation** - Request validation with class-validator
 - 🏥 **Health Checks** - Monitor API and Ollama status
 
-### OCR Engine (Ollama + DeepSeek)
-- 🧠 **AI-Powered OCR** - State-of-the-art text extraction
-- 🌐 **Multi-language** - Automatic language detection
-- 📐 **Layout Preservation** - Maintains document structure
-- 🔧 **Flexible Prompts** - Customizable extraction commands
+### OCR Engine (Ollama + DeepSeek OCR)
+- 🧠 **DeepSeek OCR Model** - Leverages the full potential of DeepSeek's vision-language model for accurate text extraction
+- 🌐 **Multi-language** - Automatic language detection and processing
+- 📐 **Layout Preservation** - Maintains document structure when requested
+- 🔧 **Precise Prompts** - The model requires specific, well-crafted prompts for optimal results
+- 📄 **PDF to Image** - Automatic conversion of PDF pages to images for DeepSeek OCR processing
 
 ## 🏗️ Architecture
 
@@ -81,7 +82,8 @@ A complete web application for OCR (Optical Character Recognition) processing us
 - **Node.js** 18.x or higher
 - **npm** 9.x or higher
 - **Ollama** with DeepSeek OCR model
-- **Poppler** (for PDF conversion)
+
+> **Note:** PDF conversion is handled natively with `pdf-to-img` library - no system dependencies like Poppler required.
 
 ### Installing Ollama
 
@@ -97,19 +99,6 @@ ollama serve
 
 # Pull DeepSeek OCR model
 ollama pull deepseek-ocr
-```
-
-### Installing Poppler (for PDF support)
-
-```bash
-# macOS
-brew install poppler
-
-# Ubuntu/Debian
-sudo apt-get install poppler-utils
-
-# Windows
-# Download from: https://github.com/oschwartz10612/poppler-windows/releases
 ```
 
 ## 🚀 Installation
@@ -177,7 +166,7 @@ OLLAMA_RETRY_DELAY=1000
 OCR_DEFAULT_LANGUAGE=auto
 OCR_DEFAULT_OUTPUT_FORMAT=text
 OCR_MAX_PAGES=100
-OCR_DEFAULT_PROMPT=<image>\nExtract the text in the image.
+OCR_DEFAULT_PROMPT=Extract all text from this image.
 
 # Storage
 STORAGE_TYPE=local
@@ -229,6 +218,23 @@ export const environment = {
 | Parse Figure | Analyze charts and diagrams |
 | Free OCR | General purpose OCR |
 | Layout Analysis | Preserve document layout |
+
+## 💡 Tested and Effective Prompts
+
+DeepSeek OCR requires precise prompts for optimal results. Here is a list of prompts that have been tested and work correctly:
+
+| To achieve... | Use prompts like... |
+|---------------|---------------------|
+| **Simple and reliable text extraction** | `"Extract all text from this image."` <br> `"Perform OCR and output the text."` |
+| **Structure a document (clean Markdown)** | `"Convert the entire document to clean markdown, using appropriate headings and lists. Exclude any non-textual elements or coordinates."` |
+| **Transcribe handwritten text** | `"Transcribe the handwritten text exactly as it appears."` |
+| **Focus on specific information types** | `"Extract all text, with a focus on numerical data and dates."` <br> `"Find and list all names and email addresses in the document."` |
+| **Extract tables** | `"Extract the table data and format it as a markdown table."` |
+| **Invoice/receipt analysis** | `"Extract all text from this receipt, including item names, quantities, prices, and total."` |
+
+> **📝 Note:** If you discover other prompts that work reliably, please contribute by adding them to this documentation via a Pull Request or Issue.
+
+> **⚠️ Important:** The DeepSeek OCR model is sensitive to prompt precision. Avoid vague or ambiguous prompts for better results.
 
 ## 📚 API Documentation
 

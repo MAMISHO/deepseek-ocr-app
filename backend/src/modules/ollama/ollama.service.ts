@@ -19,7 +19,7 @@ export class OllamaService {
   constructor(private readonly configService: ConfigService) {
     this.baseUrl = this.configService.get<string>('ollama.host') || 'http://localhost:11434';
     this.model = this.configService.get<string>('ollama.model') || 'deepseek-ocr';
-    this.timeout = this.configService.get<number>('ollama.timeout') || 900000;
+    this.timeout = this.configService.get<number>('ollama.timeout') || 1900000;
     this.maxRetries = this.configService.get<number>('ollama.maxRetries') || 3;
     this.retryDelay = this.configService.get<number>('ollama.retryDelay') || 1000;
   }
@@ -34,16 +34,20 @@ export class OllamaService {
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), this.timeout);
 
-        const response = await fetch(`${this.baseUrl}/api/generate`, {
+        const response = await fetch(`${this.baseUrl}/api/chat`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            raw: true,
             model: this.model,
-            prompt: '\nFree OCR.',
-            images: [imageBase64],
+            messages: [
+              {
+                role: 'user',
+                content: prompt || '\n Free OCR.',
+                images: [imageBase64],
+              },
+            ],
             stream: false,
           }),
           signal: controller.signal,
@@ -59,7 +63,7 @@ export class OllamaService {
         const data = await response.json();
 
         return {
-          text: data.response || '',
+          text: data.message?.content || '',
           model: data.model || this.model,
           totalDuration: data.total_duration,
         };

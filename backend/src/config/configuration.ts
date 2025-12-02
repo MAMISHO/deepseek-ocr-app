@@ -17,7 +17,7 @@ export default () => ({
     defaultLanguage: process.env.OCR_DEFAULT_LANGUAGE || 'auto',
     defaultOutputFormat: process.env.OCR_DEFAULT_OUTPUT_FORMAT || 'text',
     maxPages: parseInt(process.env.OCR_MAX_PAGES || '100', 10),
-    defaultPrompt: process.env.OCR_DEFAULT_PROMPT || '<image>\nExtract the text in the image.',
+    defaultPrompt: process.env.OCR_DEFAULT_PROMPT || 'Extract all text from this image.',
   },
   storage: {
     type: process.env.STORAGE_TYPE || 'local',
